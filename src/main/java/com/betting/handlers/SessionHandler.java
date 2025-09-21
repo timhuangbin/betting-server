@@ -17,7 +17,7 @@ public class SessionHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (!"GET".equals(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1); // Method Not Allowed
+            exchange.sendResponseHeaders(405, -1); // Method Isn't Allowed
             return;
         }
 
@@ -31,7 +31,7 @@ public class SessionHandler implements HttpHandler {
         }
 
         try {
-            // 客户ID是路径的第二部分
+            // The customer ID is the second part of the path
             int customerId = Integer.parseInt(pathParts[1]);
             String sessionKey = sessionManager.getOrCreateSession(customerId);
 

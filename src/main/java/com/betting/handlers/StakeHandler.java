@@ -21,11 +21,11 @@ public class StakeHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if (!"POST".equals(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1); // Method Not Allowed
+            exchange.sendResponseHeaders(405, -1); // Method Isn't Allowed
             return;
         }
 
-        // 解析路径获取投注方案ID
+        // Parse the path to get the betting offer ID
         String path = exchange.getRequestURI().getPath();
         String[] pathParts = path.split("/");
 
@@ -37,7 +37,7 @@ public class StakeHandler implements HttpHandler {
         try {
             int offerId = Integer.parseInt(pathParts[1]);
 
-            // 检查会话密钥
+            // Check the session key
             URI uri = exchange.getRequestURI();
             String query = uri.getQuery();
             if (query == null || !query.startsWith("sessionkey=")) {
@@ -51,23 +51,23 @@ public class StakeHandler implements HttpHandler {
                 return;
             }
 
-            // 获取客户ID
+            // Get the customer ID
             Integer customerId = sessionManager.getCustomerId(sessionKey);
             if (customerId == null) {
                 exchange.sendResponseHeaders(401, -1); // Unauthorized
                 return;
             }
 
-            // 读取请求体中的投注金额
+            // Read the stake amount in the request body
             try (InputStream is = exchange.getRequestBody()) {
                 byte[] requestBody = is.readAllBytes();
                 String stakeStr = new String(requestBody);
                 int stake = Integer.parseInt(stakeStr.trim());
 
-                // 存储投注数据
+                // Store the betting stake data
                 dataStore.addStake(offerId, customerId, stake);
 
-                // 返回空响应
+                // Return an empty response
                 exchange.sendResponseHeaders(200, -1);
             } catch (NumberFormatException e) {
                 exchange.sendResponseHeaders(400, -1); // Bad Request

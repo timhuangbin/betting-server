@@ -26,7 +26,7 @@ public class BettingServer {
     public void start() throws IOException {
         server = HttpServer.create(new InetSocketAddress(PORT), BACKLOG);
 
-        // 设置上下文处理器 - 使用前缀匹配
+        // Set up the context processor - using suffix matching
         server.createContext("/", exchange -> {
             String path = exchange.getRequestURI().getPath();
 
@@ -41,14 +41,14 @@ public class BettingServer {
             }
         });
 
-        // 设置线程池
+        // Set up the thread pool
         server.setExecutor(Executors.newFixedThreadPool(THREAD_POOL_SIZE));
 
-        // 启动服务器
+        // Start server
         server.start();
         System.out.println("Server started on port " + PORT);
 
-        // 启动会话清理线程
+        // Start the session cleanup thread
         startSessionCleanupThread();
     }
 
@@ -63,7 +63,7 @@ public class BettingServer {
         Thread cleanupThread = new Thread(() -> {
             while (true) {
                 try {
-                    Thread.sleep(60000); // 每分钟检查一次
+                    Thread.sleep(60000); // Check once per minute
                     sessionManager.cleanupExpiredSessions();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -81,10 +81,10 @@ public class BettingServer {
         try {
             bettingServer.start();
 
-            // 添加关闭钩子
+            // Add a shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(bettingServer::stop));
 
-            // 保持服务器运行
+            // Keep the server running
             Thread.currentThread().join();
         } catch (IOException | InterruptedException e) {
             System.err.println("Server error: " + e.getMessage());

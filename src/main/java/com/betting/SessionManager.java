@@ -21,12 +21,12 @@ public class SessionManager {
         SessionInfo sessionInfo = customerSessions.get(customerId);
 
         if (sessionInfo != null && !sessionInfo.isExpired()) {
-            // 更新过期时间
+            // Update the expiration time
             sessionInfo.extend(SESSION_DURATION);
             return sessionInfo.getSessionKey();
         }
 
-        // 创建新会话
+        // Create a new session
         String sessionKey = generateSessionKey();
         long expiryTime = System.currentTimeMillis() + SESSION_DURATION;
 
@@ -54,7 +54,7 @@ public class SessionManager {
     public void cleanupExpiredSessions() {
         long now = System.currentTimeMillis();
 
-        // 清理过期的会话
+        // Clean up expired sessions
         customerSessions.entrySet().removeIf(entry -> entry.getValue().isExpired(now));
         sessionCustomers.entrySet().removeIf(entry -> entry.getValue().isExpired(now));
     }

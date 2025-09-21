@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BettingDataStore {
-    // 存储结构: offerId -> customerId -> maxStake
+    // Storage Structure: offerId -> customerId -> maxStake
     private final Map<Integer, Map<Integer, Integer>> bettingData;
 
     public BettingDataStore() {
@@ -19,7 +19,7 @@ public class BettingDataStore {
                 v = new ConcurrentHashMap<>();
             }
 
-            // 更新客户的最大投注金额
+            // Update the customer's maximum stake amount
             v.merge(customerId, stake, Math::max);
             return v;
         });
@@ -31,13 +31,13 @@ public class BettingDataStore {
             return "";
         }
 
-        // 创建客户ID和最高投注金额的列表
+        // Create a list of customer IDs and maximum stake amounts
         List<Map.Entry<Integer, Integer>> stakesList = new ArrayList<>(offerStakes.entrySet());
 
-        // 按投注金额降序排序
+        // Sort by stake amount in descending order
         stakesList.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
-        // 取前20名
+        // Take the top 20
         int limit = Math.min(20, stakesList.size());
         StringBuilder result = new StringBuilder();
 
