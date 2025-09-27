@@ -13,10 +13,6 @@ public class CustomerStake implements Comparable<CustomerStake> {
         return customerId;
     }
 
-    public int getStake() {
-        return stake;
-    }
-
     @Override
     public int compareTo(CustomerStake other) {
         return Integer.compare(other.stake, this.stake); // 降序排序

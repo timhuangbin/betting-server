@@ -21,10 +21,6 @@ public class Session {
         return sessionKey;
     }
 
-    public Instant getExpiryTime() {
-        return expiryTime;
-    }
-
     public boolean isExpired() {
         return Instant.now().isAfter(expiryTime);
     }
