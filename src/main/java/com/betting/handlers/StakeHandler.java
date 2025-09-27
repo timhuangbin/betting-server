@@ -1,79 +1,49 @@
 package com.betting.handlers;
 
-import com.betting.BettingDataStore;
-import com.betting.SessionManager;
+import com.betting.annotation.BodyParam;
+import com.betting.annotation.PathParam;
+import com.betting.annotation.QueryParam;
+import com.betting.annotation.Route;
+import com.betting.service.BettingService;
+import com.betting.service.SessionService;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 
-public class StakeHandler implements HttpHandler {
-    private final SessionManager sessionManager;
-    private final BettingDataStore dataStore;
+public class StakeHandler extends BaseHandler {
+    private final SessionService sessionService;
+    private final BettingService bettingService;
 
-    public StakeHandler(SessionManager sessionManager, BettingDataStore dataStore) {
-        this.sessionManager = sessionManager;
-        this.dataStore = dataStore;
+    public StakeHandler(SessionService sessionService, BettingService bettingService) {
+        this.sessionService = sessionService;
+        this.bettingService = bettingService;
     }
 
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if (!"POST".equals(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1); // Method Isn't Allowed
+    @Route(method = "POST", pattern = "/\\d+/stake")
+    public void handlePostStake(
+            @PathParam(index = 1) int offerId,
+            @QueryParam("sessionkey") String sessionKey,
+            @BodyParam int stake,
+            HttpExchange exchange) throws IOException {
+
+        // 验证会话
+        if (!sessionService.isValidSession(sessionKey)) {
+            sendError(exchange, 401);
             return;
         }
 
-        // Parse the path to get the betting offer ID
-        String path = exchange.getRequestURI().getPath();
-        String[] pathParts = path.split("/");
-
-        if (pathParts.length < 2) {
-            exchange.sendResponseHeaders(400, -1); // Bad Request
+        // 获取客户ID
+        Integer customerId = sessionService.getCustomerId(sessionKey).orElse(null);
+        if (customerId == null) {
+            sendError(exchange, 401);
             return;
         }
 
         try {
-            int offerId = Integer.parseInt(pathParts[1]);
-
-            // Check the session key
-            URI uri = exchange.getRequestURI();
-            String query = uri.getQuery();
-            if (query == null || !query.startsWith("sessionkey=")) {
-                exchange.sendResponseHeaders(400, -1); // Bad Request
-                return;
-            }
-
-            String sessionKey = query.substring("sessionkey=".length());
-            if (!sessionManager.isValidSession(sessionKey)) {
-                exchange.sendResponseHeaders(401, -1); // Unauthorized
-                return;
-            }
-
-            // Get the customer ID
-            Integer customerId = sessionManager.getCustomerId(sessionKey);
-            if (customerId == null) {
-                exchange.sendResponseHeaders(401, -1); // Unauthorized
-                return;
-            }
-
-            // Read the stake amount in the request body
-            try (InputStream is = exchange.getRequestBody()) {
-                byte[] requestBody = is.readAllBytes();
-                String stakeStr = new String(requestBody);
-                int stake = Integer.parseInt(stakeStr.trim());
-
-                // Store the betting stake data
-                dataStore.addStake(offerId, customerId, stake);
-
-                // Return an empty response
-                exchange.sendResponseHeaders(200, -1);
-            } catch (NumberFormatException e) {
-                exchange.sendResponseHeaders(400, -1); // Bad Request
-            }
-        } catch (NumberFormatException e) {
-            exchange.sendResponseHeaders(400, -1); // Bad Request
+            bettingService.addStake(offerId, customerId, stake);
+            sendEmptyResponse(exchange);
+        } catch (Exception e) {
+            sendError(exchange, 500);
         }
     }
 }

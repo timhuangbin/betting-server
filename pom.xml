@@ -34,7 +34,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.betting.BettingServer</mainClass>
+              <mainClass>com.betting.server.BettingServer</mainClass>
             </manifest>
           </archive>
         </configuration>

@@ -1,46 +1,27 @@
 package com.betting.handlers;
 
-import com.betting.SessionManager;
+import com.betting.annotation.PathParam;
+import com.betting.annotation.Route;
+import com.betting.service.SessionService;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
-public class SessionHandler implements HttpHandler {
-    private final SessionManager sessionManager;
+public class SessionHandler extends BaseHandler {
+    private final SessionService sessionService;
 
-    public SessionHandler(SessionManager sessionManager) {
-        this.sessionManager = sessionManager;
+    public SessionHandler(SessionService sessionService) {
+        this.sessionService = sessionService;
     }
 
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        if (!"GET".equals(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, -1); // Method Isn't Allowed
-            return;
-        }
-
-        String path = exchange.getRequestURI().getPath();
-        // 路径格式应该是 /{customerId}/session
-        String[] pathParts = path.split("/");
-
-        if (pathParts.length < 3) {
-            exchange.sendResponseHeaders(400, -1); // Bad Request
-            return;
-        }
-
+    @Route(method = "GET", pattern = "/\\d+/session")
+    public void handleGetSession(@PathParam(index = 1) int customerId, HttpExchange exchange)
+            throws IOException {
         try {
-            // The customer ID is the second part of the path
-            int customerId = Integer.parseInt(pathParts[1]);
-            String sessionKey = sessionManager.getOrCreateSession(customerId);
-
-            exchange.sendResponseHeaders(200, sessionKey.length());
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(sessionKey.getBytes());
-            }
-        } catch (NumberFormatException e) {
-            exchange.sendResponseHeaders(400, -1); // Bad Request
+            String sessionKey = sessionService.getOrCreateSession(customerId);
+            sendResponse(exchange, sessionKey);
+        } catch (Exception e) {
+            sendError(exchange, 500);
         }
     }
 }
