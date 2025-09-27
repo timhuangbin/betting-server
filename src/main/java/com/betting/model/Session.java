@@ -25,10 +25,6 @@ public class Session {
         return Instant.now().isAfter(expiryTime);
     }
 
-    public boolean isExpired(Instant currentTime) {
-        return currentTime.isAfter(expiryTime);
-    }
-
     public Session extend(long durationSeconds) {
         return new Session(customerId, sessionKey, expiryTime.plusSeconds(durationSeconds));
     }

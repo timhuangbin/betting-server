@@ -58,11 +58,9 @@ public class SessionStore {
     }
 
     public void cleanupExpiredSessions() {
-        var now = java.time.Instant.now();
-
         customerToSession.entrySet().removeIf(entry -> {
             Session session = entry.getValue();
-            boolean expired = session.isExpired(now);
+            boolean expired = session.isExpired();
             if (expired) {
                 sessionToCustomer.remove(session.getSessionKey());
                 customerLocks.remove(entry.getKey());
